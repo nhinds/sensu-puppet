@@ -311,8 +311,14 @@ class sensu (
   if !is_integer($api_port) { fail('api_port must be an integer') }
   if !is_integer($init_stop_max_wait) { fail('init_stop_max_wait must be an integer') }
   if $dashboard { fail('Sensu-dashboard is deprecated, use a dashboard module. See https://github.com/sensu/sensu-puppet#dashboards')}
-  if $purge_config { fail('purge_config is deprecated, set the purge parameter to a hash containing `config => true` instead') }
-  if $purge_plugins_dir { fail('purge_plugins_dir is deprecated, set the purge parameter to a hash containing `plugins => true` instead') }
+  if $purge_config {
+    if $purge { fail('purge_config is deprecated and cannot be used with purge, set the purge parameter to a hash containing `config => true` instead') }
+    else { warning('purge_config is deprecated, set the purge parameter to a hash containing `config => true` instead') }
+  }
+  if $purge_plugins_dir {
+    if $purge { fail('purge_plugins_dir is deprecated and cannot be used with purge, set the purge parameter to a hash containing `plugins => true` instead') }
+    else { warning('purge_plugins_dir is deprecated, set the purge parameter to a hash containing `plugins => true` instead') }
+  }
 
   # Ugly hack for notifications, better way?
   # Put here to avoid computing the conditionals for every check
@@ -344,8 +350,9 @@ class sensu (
 
   if is_bool($purge) {
     # If purge is a boolean, we either purge everything or purge nothing
-    $_purge_plugins    = $purge
-    $_purge_config     = $purge
+    # If the deprecated $purge_plugins_dir/$purge_config are specified, honour them
+    $_purge_plugins    = $purge or $purge_plugins_dir
+    $_purge_config     = $purge or $purge_config
     $_purge_handlers   = $purge
     $_purge_extensions = $purge
     $_purge_mutators   = $purge

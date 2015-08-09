@@ -145,20 +145,22 @@ describe 'sensu' do
 
     context 'purge' do
       {
-        false                    => [],
-        true                     => directories,
-        { 'config'   => true }   => [ '/etc/sensu/conf.d', '/etc/sensu/conf.d/handlers', '/etc/sensu/conf.d/checks' ],
-        { 'plugins'  => true }   => [ '/etc/sensu/plugins' ],
-        { 'handlers' => true }   => [ '/etc/sensu/handlers' ],
-        { 'extensions' => true } => [ '/etc/sensu/extensions', '/etc/sensu/extensions/handlers' ],
-        { 'mutators' => true }   => [ '/etc/sensu/mutators' ],
-        {
+        { :purge => false }                    => [],
+        { :purge => true }                     => directories,
+        { :purge => { 'config'   => true } }   => [ '/etc/sensu/conf.d', '/etc/sensu/conf.d/handlers', '/etc/sensu/conf.d/checks' ],
+        { :purge => { 'plugins'  => true } }   => [ '/etc/sensu/plugins' ],
+        { :purge => { 'handlers' => true } }   => [ '/etc/sensu/handlers' ],
+        { :purge => { 'extensions' => true } } => [ '/etc/sensu/extensions', '/etc/sensu/extensions/handlers' ],
+        { :purge => { 'mutators' => true } }   => [ '/etc/sensu/mutators' ],
+        { :purge => {
           'config' => true,
           'plugins' => true
-        } => [ '/etc/sensu/conf.d', '/etc/sensu/conf.d/handlers', '/etc/sensu/conf.d/checks', '/etc/sensu/plugins' ]
-      }.each do |purge_value, purged_directories|
-        context "=> #{purge_value}" do
-          let(:params) { { :purge => purge_value } }
+        } } => [ '/etc/sensu/conf.d', '/etc/sensu/conf.d/handlers', '/etc/sensu/conf.d/checks', '/etc/sensu/plugins' ],
+        { :purge_config => true }              => [ '/etc/sensu/conf.d', '/etc/sensu/conf.d/handlers', '/etc/sensu/conf.d/checks' ],
+        { :purge_plugins_dir => true }         => [ '/etc/sensu/plugins' ],
+      }.each do |purge_params, purged_directories|
+        context "#{purge_params.inspect}" do
+          let(:params) { purge_params }
 
           purged_directories.each do |dir|
             it { should contain_file(dir).with(
